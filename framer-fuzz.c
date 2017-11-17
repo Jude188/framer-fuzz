@@ -48,6 +48,7 @@
 #include <upipe/uref.h>
 #include <upipe/uref_std.h>
 #include <upipe/uref_flow.h>
+#include <upipe/uref_sound_flow.h>
 #include <upipe/uref_clock.h>
 #include <upipe/uref_dump.h>
 #include <upipe/ubuf.h>
@@ -167,10 +168,19 @@ int main(int argc, char **argv)
                                      "h264f"));
     }
     else if ( globalArgs.format == 2 ) {
+        
+        struct uref *flow_def = uref_std_alloc(uref_mgr);
+        uref_flow_set_def(flow_def, "sound.s32.");
+        uref_sound_flow_set_channels(flow_def, 2);
+        uref_sound_flow_set_sample_size(flow_def, 8);
+        uref_sound_flow_set_planes(flow_def, 1);
+        uref_sound_flow_add_plane(flow_def, "l");
+        uref_sound_flow_set_raw_sample_size(flow_def, 20);
+
         struct upipe_mgr *upipe_block_to_sound_mgr = upipe_block_to_sound_mgr_alloc();
-        struct upipe *upipe_block_to_sound  = upipe_void_alloc_output(upipe_src,
+        struct upipe *upipe_block_to_sound  = upipe_flow_alloc_output(upipe_src,
                        upipe_block_to_sound_mgr, uprobe_pfx_alloc(uprobe_use(uprobe),
-                       UPROBE_LOG_DEBUG, "block_to_sound"));
+                       UPROBE_LOG_DEBUG, "block_to_sound"), flow_def);
         assert(upipe_block_to_sound != NULL);
         upipe_release(upipe_block_to_sound);
 
